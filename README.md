@@ -4,8 +4,8 @@
 
 - **Institución:** Duoc UC
 - **Asignatura:** Introducción a Herramientas DevOps (ISY1101)
-- **Integrantes:** Nicolás Lorca - Katherine Ramírez
-- **Docente:** Miguel Acuña
+- **Integrantes:** Nicolás Lorca Salamanca - Katherine Ramírez Carvajal
+- **Docente:** Miguel Acuña Narvaez
 - **Sección:** 301V
 
 ---
