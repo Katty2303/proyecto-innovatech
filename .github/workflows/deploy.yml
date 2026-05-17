@@ -7,7 +7,7 @@ on:
 
 jobs:
   # --------------------------------------------------------
-  # FASE 1: BUILD & PUSH (Integración Continuo)
+  # FASE 1: BUILD & PUSH (Integración Continua)
   # --------------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/innovatech-frontend:latest
 
-      # Construcción y publicación del Backend Ventas
+      # Construcción y publicación del Backend Ventas (Ruta corregida según terminal)
       - name: Compilar y publicar imagen de Ventas
         uses: docker/build-push-action@v4
         with:
@@ -42,7 +42,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/innovatech-ventas:latest
 
-      # Construcción y publicación del Backend Despachos
+      # Construcción y publicación del Backend Despachos (Ruta corregida según terminal)
       - name: Compilar y publicar imagen de Despachos
         uses: docker/build-push-action@v4
         with:
@@ -65,22 +65,12 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.AWS_INSTANCE_IP }}
-          username: ubuntu # Usuario por defecto en instancias EC2 Ubuntu de AWS
+          username: ubuntu
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
           script: |
-            # 1. Crear o moverse al directorio de la aplicación en el servidor
             mkdir -p ~/innovatech-app
             cd ~/innovatech-app
-
-            # 2. Descargar la última definición del docker-compose.yml
-            echo "${{ github.workspace }}/docker-compose.yml"
-
-            # 3. Descargar las imágenes más recientes de Docker Hub
             docker compose pull
-
-            # 4. Detener contenedores antiguos y levantar el stack actualizado en segundo plano
             docker compose down
             docker compose up -d --build
-
-            # 5. Limpieza preventiva de imágenes colgantes para optimizar almacenamiento
             docker image prune -f
