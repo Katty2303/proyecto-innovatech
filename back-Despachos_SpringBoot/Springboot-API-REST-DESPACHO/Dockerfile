@@ -1,7 +1,7 @@
 # ========================================================
 # ETAPA 1: Compilación del código Java (Builder)
 # ========================================================
-FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+FROM maven:3.8.6-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
