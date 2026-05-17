@@ -1,0 +1,76 @@
+name: Pipeline CI/CD Innovatech Chile (Duoc UC)
+
+# Trigger configurado estrictamente según rúbrica (Rama deploy)
+on:
+  push:
+    branches: ["deploy"]
+
+jobs:
+  # --------------------------------------------------------
+  # FASE 1: BUILD & PUSH (Integración Continua)
+  # --------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v3
+
+      - name: Iniciar sesión en Docker Hub de forma segura
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Configurar entorno de compilación (Docker Buildx)
+        uses: docker/setup-buildx-action@v2
+
+      # Construcción y publicación del Frontend
+      - name: Compilar y publicar imagen del Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./front_despacho
+          file: ./front_despacho/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/innovatech-frontend:latest
+
+      # Construcción y publicación del Backend Ventas (Ruta corregida según terminal)
+      - name: Compilar y publicar imagen de Ventas
+        uses: docker/build-push-action@v4
+        with:
+          context: ./back-Ventas_SpringBoot/Springboot-API-REST
+          file: ./back-Ventas_SpringBoot/Springboot-API-REST/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/innovatech-ventas:latest
+
+      # Construcción y publicación del Backend Despachos (Ruta corregida según terminal)
+      - name: Compilar y publicar imagen de Despachos
+        uses: docker/build-push-action@v4
+        with:
+          context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+          file: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/innovatech-despachos:latest
+
+  # --------------------------------------------------------
+  # FASE 2: DEPLOY EN AWS EC2 (Despliegue Continuo)
+  # --------------------------------------------------------
+  deploy-to-aws:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Descargar el código en el ejecutor remoto
+        uses: actions/checkout@v3
+
+      - name: Conectarse vía SSH a AWS EC2 y Desplegar
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AWS_INSTANCE_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          script: |
+            mkdir -p ~/innovatech-app
+            cd ~/innovatech-app
+            docker compose pull
+            docker compose down
+            docker compose up -d --build
+            docker image prune -f
